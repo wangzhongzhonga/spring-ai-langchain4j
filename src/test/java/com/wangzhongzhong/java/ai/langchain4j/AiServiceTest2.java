@@ -99,4 +99,9 @@ public class AiServiceTest2 {
 
     }
 
+    @Test
+    public void testChatMemory4() {
+        System.out.println("chatMemoryAssistantProvider = " + chatMemoryAssistantProvider.chat(1, "今天是几号"));
+    }
+
 }
