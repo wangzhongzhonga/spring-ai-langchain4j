@@ -1,20 +1,14 @@
 package com.wangzhongzhong.java.ai.langchain4j;
 
+import com.wangzhongzhong.java.ai.langchain4j.assistant.Assistant;
 import dev.langchain4j.community.model.dashscope.QwenChatModel;
-import dev.langchain4j.community.model.dashscope.QwenModelName;
 import dev.langchain4j.community.model.dashscope.WanxImageModel;
 import dev.langchain4j.data.image.Image;
-import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.output.Response;
-import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
 public class LLtest {
@@ -58,5 +52,12 @@ public class LLtest {
 
         Response<Image> imageResponse = build.generate("狗");
         System.out.println(imageResponse.content().url());
+    }
+
+    @Autowired
+    private Assistant assistant;
+    @Test
+    public void testAss(){
+        System.out.println("assistant = " + assistant.chat("你是谁"));
     }
 }
