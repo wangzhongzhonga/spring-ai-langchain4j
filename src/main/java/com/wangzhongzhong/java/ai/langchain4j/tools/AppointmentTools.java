@@ -1,16 +1,24 @@
 package com.wangzhongzhong.java.ai.langchain4j.tools;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wangzhongzhong.java.ai.langchain4j.entity.Appointment;
+import com.wangzhongzhong.java.ai.langchain4j.entity.DoctorSchedule;
 import com.wangzhongzhong.java.ai.langchain4j.service.AppointmentService;
+import com.wangzhongzhong.java.ai.langchain4j.service.DoctorScheduleService;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class AppointmentTools {
     @Autowired
     private AppointmentService appointmentService;
+
+    @Autowired
+    private DoctorScheduleService doctorScheduleService;
 
     @Tool(name = "预约挂号", value = "根据参数，先执行工具方法queryDepartment查询是否可预约，并直 接给用户回答是否可预约，并让用户确认所有预约信息，用户确认后再进行预约。")
     public String bookAppointment(Appointment appointment) {
@@ -55,6 +63,52 @@ public class AppointmentTools {
         //如果没有指定医生名字，则根据其他条件查询是否有可以预约的医生（有返回true，否则返回false）；
         //如果指定了医生名字，则判断医生是否有排班（没有排版返回false）
         //如果有排班，则判断医生排班时间段是否已约满（约满返回false，有空闲时间返回true）
-        return true;
+        if (doctorName == null || doctorName.isBlank()) {
+            return hasAvailableDoctor(name, date, time);
+        } else {
+            return isDoctorAvailable(doctorName, name, date, time);
+        }
+
+    }
+
+    private boolean hasAvailableDoctor(String department, String date, String time) {
+        LambdaQueryWrapper<DoctorSchedule> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(DoctorSchedule::getDepartment, department)
+                .eq(DoctorSchedule::getDate, date)
+                .eq(DoctorSchedule::getTime, time);
+        List<DoctorSchedule> schedules = doctorScheduleService.list(wrapper);
+
+        for (DoctorSchedule schedule : schedules) {
+            long bookedCount = countBooked(schedule.getDoctorName(), department, date, time);
+            if (bookedCount < schedule.getMaxPatients()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isDoctorAvailable(String doctorName, String department, String date, String time) {
+        LambdaQueryWrapper<DoctorSchedule> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(DoctorSchedule::getDoctorName, doctorName)
+                .eq(DoctorSchedule::getDepartment, department)
+                .eq(DoctorSchedule::getDate, date)
+                .eq(DoctorSchedule::getTime, time);
+        DoctorSchedule schedule = doctorScheduleService.getOne(wrapper);
+
+        if (schedule == null) {
+            return false;
+        }
+
+        long bookedCount = countBooked(doctorName, department, date, time);
+        return bookedCount < schedule.getMaxPatients();
+    }
+
+    private long countBooked(String doctorName, String department, String date, String time) {
+        LambdaQueryWrapper<Appointment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Appointment::getDoctorName, doctorName)
+                .eq(Appointment::getDepartment, department)
+                .eq(Appointment::getDate, date)
+                .eq(Appointment::getTime, time);
+        return appointmentService.count(wrapper);
     }
 }
