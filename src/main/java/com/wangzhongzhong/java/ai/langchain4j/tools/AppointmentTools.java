@@ -79,7 +79,7 @@ public class AppointmentTools {
         List<DoctorSchedule> schedules = doctorScheduleService.list(wrapper);
 
         for (DoctorSchedule schedule : schedules) {
-            long bookedCount = countBooked(schedule.getDoctorName(), department, date, time);
+            long bookedCount = countBooked("", department, date, time);
             if (bookedCount < schedule.getMaxPatients()) {
                 return true;
             }
