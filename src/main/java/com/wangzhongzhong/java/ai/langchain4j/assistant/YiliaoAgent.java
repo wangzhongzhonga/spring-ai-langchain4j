@@ -15,7 +15,7 @@ import dev.langchain4j.service.spring.AiServiceWiringMode;
  * @date: 2026/7/11 16:07
  * @version: 1.0
  */
-@AiService(wiringMode = AiServiceWiringMode.EXPLICIT, chatModel = "qwenChatModel", chatMemory = "chatMemory", chatMemoryProvider = "yiliaoChatMemoryProvider")
+@AiService(wiringMode = AiServiceWiringMode.EXPLICIT, chatModel = "qwenChatModel", chatMemory = "chatMemory", chatMemoryProvider = "yiliaoChatMemoryProvider", tools = "appointmentTools")
 public interface YiliaoAgent {
     @SystemMessage(fromResource = "yiliao-system-message.txt")
     String chat(@MemoryId Long memoryId, @UserMessage String userMessage);
